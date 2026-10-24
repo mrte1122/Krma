@@ -14,7 +14,8 @@ Your Reddit karma in the macOS menu bar, with the "local karma" of the subreddit
 - **Local karma** is the per-subreddit figure Reddit itself keeps (what moderators see), read straight from the API, so it's exact and includes activity older than Reddit's 1,000-item listings.
 - **History** is kept on your Mac, so "today", "7 days" and "30 days" are real deltas, not guesses.
 - **Notifications** for milestones (1k, 5k, 10k… and favorites' 100, 500, 1k…) and for jumps of 25+ karma between refreshes, naming the subreddits behind them.
-- No telemetry. The only server it talks to is reddit.com.
+- **Updates**: a daily anonymous check of this repo's latest GitHub release, an **Update** button in the popover, and an Ed25519-signed archive that must match the key built into the app (turn it off in Settings → General).
+- No telemetry. Besides reddit.com, the only request is the update check to api.github.com, which sends no token or identifier.
 
 Sibling of [Quotacat](https://github.com/mrte1122/Quotacat) (GitHub quotas in the menu bar) and built the same way.
 
@@ -44,7 +45,7 @@ To stop Krma's access, use Sign Out (which revokes the token) or Reddit → Sett
 
 | Tab | What's there |
 |---|---|
-| General | refresh interval (1–30 min, default 5), notifications and the jump threshold, launch at login, diagnostics |
+| General | refresh interval (1–30 min, default 5), notifications and the jump threshold, launch at login, version and Check for Updates, diagnostics |
 | Subreddits | favorites: drag to reorder, add by name, remove; how many go in the menu bar |
 | Appearance | light/dark/system; which parts the menu bar shows (glyph, total, change, favorites, exact numbers, monochrome) with a live preview; the change period |
 | Account | who's signed in, API usage this window, history size, sign out, client ID |
@@ -74,7 +75,19 @@ build/Krma.app/Contents/MacOS/Krma --sign-in            # the OAuth flow from th
 build/Krma.app/Contents/MacOS/Krma --demo               # run with sample data
 build/Krma.app/Contents/MacOS/Krma --snapshot docs --demo   # render the popover and menu-bar PNGs
 build/Krma.app/Contents/MacOS/Krma --launch-at-login on
+build/Krma.app/Contents/MacOS/Krma --check-update       # print the latest release version
+build/Krma.app/Contents/MacOS/Krma --update             # download, verify, and install the latest release
 ```
+
+## Releasing (maintainers)
+
+One-time setup: a "Developer ID Application" certificate in your Keychain, notarization credentials stored with `xcrun notarytool store-credentials krma-notary` (or reuse Quotacat's: `KRMA_NOTARY_PROFILE=quotacat-notary`), and an update-signing key from `swift scripts/sign-update.swift keygen` (kept in `~/.config/krma`, never in the repo; back it up).
+
+```bash
+./scripts/release.sh X.Y.Z "Describe what changed"
+```
+
+`release.sh` bumps `VERSION`, builds the universal app, signs it with your Developer ID, has Apple notarize it, signs `Krma.zip` for the updater, tags, pushes, creates the GitHub release, and bumps `Casks/krma.rb` in [mrte1122/homebrew-tap](https://github.com/mrte1122/homebrew-tap) if that cask exists.
 
 ## How it works
 

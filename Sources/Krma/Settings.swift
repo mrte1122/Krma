@@ -60,7 +60,7 @@ enum Period: String, CaseIterable, Identifiable {
     }
 }
 
-/// `--demo`: sample data instead of your account. No network, no notifications.
+/// `--demo`: sample data instead of your account. No network, no notifications, no update checks.
 enum Demo {
     static let isActive = CommandLine.arguments.contains("--demo")
 }
@@ -85,6 +85,9 @@ enum SettingsKey {
     static let redditClientID = "redditClientID"          // overrides RedditSignIn.defaultClientID
     static let accessTokenExpiry = "accessTokenExpiry"    // Date
     static let showAllSubreddits = "showAllSubreddits"    // popover disclosure state
+    static let autoUpdateCheck = "autoUpdateCheck"
+    static let lastUpdateCheck = "lastUpdateCheck"        // Date
+    static let notifiedUpdateVersion = "notifiedUpdateVersion"
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
@@ -105,6 +108,7 @@ enum SettingsKey {
             changeThreshold: 25.0,
             redditClientID: "",
             showAllSubreddits: false,
+            autoUpdateCheck: true,
         ])
     }
 }

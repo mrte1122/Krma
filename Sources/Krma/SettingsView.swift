@@ -3,11 +3,12 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var store: KarmaStore
+    @ObservedObject var updater: Updater
     @ObservedObject var signIn: RedditSignIn
 
     var body: some View {
         TabView {
-            GeneralSettings(store: store).tabItem { Label("General", systemImage: "gearshape") }
+            GeneralSettings(store: store, updater: updater).tabItem { Label("General", systemImage: "gearshape") }
             SubredditSettings(store: store).tabItem { Label("Subreddits", systemImage: "star") }
             AppearanceSettings(store: store).tabItem { Label("Appearance", systemImage: "menubar.rectangle") }
             AccountSettings(store: store, signIn: signIn).tabItem { Label("Account", systemImage: "person.crop.circle") }
@@ -19,6 +20,8 @@ struct SettingsView: View {
 
 private struct GeneralSettings: View {
     @ObservedObject var store: KarmaStore
+    @ObservedObject var updater: Updater
+    @AppStorage(SettingsKey.autoUpdateCheck) private var autoUpdate = true
     @AppStorage(SettingsKey.refreshInterval) private var interval = 300.0
     @AppStorage(SettingsKey.notificationsEnabled) private var notifications = true
     @AppStorage(SettingsKey.notifyMilestones) private var milestones = true
@@ -30,6 +33,19 @@ private struct GeneralSettings: View {
     private var intervalText: String {
         let m = Int(interval) / 60
         return m == 1 ? "Every minute" : "Every \(m) minutes"
+    }
+
+    private var updateStatus: String {
+        switch updater.state {
+        case .checking: return "Checking…"
+        case .upToDate: return "Krma is up to date."
+        case .noReleases: return "No releases have been published yet."
+        case .available(let r): return "Version \(r.version) is available."
+        case .installing(let step): return step
+        case .failed(let message): return message
+        case .idle:
+            return updater.lastChecked.map { "Last checked \($0.formatted(.relative(presentation: .named)))." } ?? "Not checked yet."
+        }
     }
 
     var body: some View {
@@ -63,7 +79,18 @@ private struct GeneralSettings: View {
                     }
             }
             Section("About") {
-                LabeledContent("Version", value: RedditAuth.appVersion)
+                LabeledContent("Version", value: Updater.currentVersion)
+                HStack {
+                    Text(updateStatus).font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    if let release = updater.availableRelease {
+                        Button("Install \(release.version)") { Task { await updater.install(release) } }
+                    } else {
+                        Button("Check for Updates") { Task { await updater.check(userInitiated: true) } }
+                            .disabled(updater.state == .checking)
+                    }
+                }
+                Toggle("Check for updates automatically (daily)", isOn: $autoUpdate)
                 HStack {
                     Link("Source on GitHub", destination: Links.repo)
                     Spacer()

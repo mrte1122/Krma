@@ -7,6 +7,7 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let store = KarmaStore()
+    let updater = Updater()
     lazy var signIn = RedditSignIn(vault: store.vault)
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
@@ -19,7 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.button?.action = #selector(togglePopover)
         statusItem.button?.imagePosition = .imageOnly
 
-        let host = NSHostingController(rootView: PopoverView(store: store, signIn: signIn) { [weak self] in self?.openSettings() })
+        let host = NSHostingController(rootView: PopoverView(store: store, updater: updater, signIn: signIn) { [weak self] in self?.openSettings() })
         host.sizingOptions = .preferredContentSize
         popover.contentViewController = host
         popover.behavior = .transient
@@ -46,6 +47,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         store.onRevoked = { [weak self] in self?.signIn.markRevoked() }
         store.start()
+        updater.notifier = store.notifier
+        updater.start()
     }
 
     /// Reddit's redirect (`krma://oauth?code=…`) arrives here, launching the app if needed.
@@ -99,7 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func openSettings() {
         popover.performClose(nil)
         if settingsWindow == nil {
-            let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(store: store, signIn: signIn)))
+            let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(store: store, updater: updater, signIn: signIn)))
             w.title = "Krma Settings"
             w.styleMask = [.titled, .closable]
             w.isReleasedWhenClosed = false

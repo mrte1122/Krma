@@ -40,7 +40,7 @@ enum Snapshot {
             for (name, appearanceName, all) in [("light", NSAppearance.Name.aqua, false), ("dark", .darkAqua, false),
                                                 ("all-light", .aqua, true), ("all-dark", .darkAqua, true)] {
                 d.set(all, forKey: SettingsKey.showAllSubreddits)
-                let view = PopoverView(store: store, signIn: signIn, openSettings: {})
+                let view = PopoverView(store: store, updater: Updater(), signIn: signIn, openSettings: {})
                     .background(Color(nsColor: .windowBackgroundColor))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 let host = NSHostingView(rootView: view)

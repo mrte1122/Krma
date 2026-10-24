@@ -111,7 +111,7 @@ repeated failures).
 
 ```
 Sources/Krma/
-  Entry.swift          @main; CLI modes (--selftest, --once, --sign-in, --demo, --snapshot, --launch-at-login)
+  Entry.swift          @main; CLI modes (--selftest, --once, --sign-in, --demo, --snapshot, --launch-at-login, --check-update, --update)
   App.swift            AppDelegate: status item, popover, settings window, krma:// URL handling
   Settings.swift       UserDefaults keys and defaults, ThemeChoice, Period, Demo, Links
   Models.swift         KarmaSnapshot, SubKarma, Account, SubredditInfo, Delta
@@ -122,6 +122,7 @@ Sources/Krma/
   History.swift        snapshot persistence and baseline queries
   KarmaStore.swift     refresh coordinator: timer, wake/network triggers, favorites, cache file, demo data
   Notifier.swift       milestone and jump notifications with dedup
+  Updater.swift        GitHub Releases check, Ed25519 verification, in-place install, relaunch
   Theme.swift          colors and the card surface
   MenuBarIcon.swift    NSImage renderer for the status item
   PopoverView.swift    total card, sparkline, favorites, all-subreddits list, sign-in card
@@ -131,7 +132,35 @@ Sources/Krma/
 scripts/
   build-app.sh         universal build, icon packing, URL-scheme Info.plist, signing, --install / --zip / --notarize
   make-icon.swift      app icon renderer (an original cat with an upvote arrow; no Reddit marks)
+  release.sh           version bump, notarized build, signed zip, tag, push, GitHub release, cask bump
+  sign-update.swift    Ed25519 keygen / public / sign for the update archive
 ```
 
-Not carried over from Quotacat yet: the signed in-app updater and `release.sh`. Both depend on a
-public repository and an Ed25519 signing key, so they come with the first release.
+## Updates
+
+Same design as Quotacat's updater, with Krma's own key.
+
+- Releases are GitHub Releases with two assets: `Krma.zip` (always that name, so
+  `releases/latest/download/Krma.zip` is a permanent download link) and `Krma.zip.sig`.
+- The signature is Ed25519 over the zip bytes. The private key stays on the maintainer's Mac
+  (`~/.config/krma/update-signing-key`, override with `KRMA_SIGNING_KEY`; it is not Quotacat's
+  key); the public key is compiled into `Updater.swift`, and `release.sh` refuses to ship if the
+  two don't match.
+- The app checks `GET /repos/mrte1122/Krma/releases/latest` 15 seconds after launch and then at
+  most once a day, unauthenticated. A newer version shows an Update button and one notification
+  per version. Background checks fail silently (offline, rate-limited, or no release published
+  yet); a manual check from Settings → General or `--check-update` reports why. `--demo` never
+  checks.
+- Installing downloads both assets, verifies the signature, unzips with `ditto`, checks the bundle
+  identifier, version and code signature, swaps the bundle in place with
+  `FileManager.replaceItemAt` (or just `Contents/` when the user owns the app but not the folder),
+  and relaunches through a detached `open`. Any failure leaves the installed app untouched and
+  links to the releases page.
+- An app opened straight from Downloads runs from a read-only App Translocation copy and can't
+  update itself; the popover then shows a "Move Krma to Applications" banner and, once a copy is
+  found there, offers to relaunch from it.
+- Releases are signed with a Developer ID (hardened runtime) and notarized, with the ticket
+  stapled, so first downloads pass Gatekeeper. Once the running app has a Developer ID team, the
+  updater also requires the new bundle to come from the same team.
+- The bundle is assembled and signed in `$TMPDIR`, not the repo: iCloud-synced folders like
+  `~/Documents` add extended attributes that codesign rejects.
