@@ -213,9 +213,6 @@ struct PopoverView: View {
             }
             .help("Copy diagnostics (never includes your tokens)")
             Spacer()
-            Link(destination: Links.tip) { Image(systemName: "heart.fill").foregroundStyle(.pink) }
-                .help("Enjoying Krma? Buy me a coffee on Ko-fi")
-            Spacer()
             Button("Quit") { NSApp.terminate(nil) }
         }
         .buttonStyle(.borderless)

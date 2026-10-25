@@ -114,7 +114,6 @@ enum SettingsKey {
 }
 
 enum Links {
-    static let tip = URL(string: "https://ko-fi.com/mrte90")!
     static let repo = URL(string: "https://github.com/mrte1122/Krma")!
     static let redditApps = URL(string: "https://www.reddit.com/prefs/apps")!
     static let redditAccessRequest = URL(string: "https://support.reddithelp.com/hc/en-us/requests/new?ticket_form_id=14868593862164&tf_42139884615700=api_request_type_developer_clone")!

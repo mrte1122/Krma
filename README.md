@@ -95,4 +95,4 @@ See [DESIGN.md](DESIGN.md): data sources, the sign-in flow, how history and delt
 
 ## License
 
-MIT. If Krma brightens your menu bar, tips are welcome at [ko-fi.com/mrte90](https://ko-fi.com/mrte90).
+MIT. Krma is free and non-commercial: no ads, no paid features, no tips.

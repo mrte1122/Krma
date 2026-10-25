@@ -75,4 +75,4 @@ Filling it in this way (edit the bracketed parts first):
 - Content deleted on Reddit must be deleted from the app within 48 hours. Krma stores only the user's own
   karma numbers and subreddit names, never posts or comments.
 - Commercial use (ads, paywalls, subscriptions, paid features) needs a separate written agreement. Krma is
-  free; tips through Ko-fi for the author are not a feature of the app and don't gate anything.
+  free with no monetization of any kind; the tip link it once had was removed on 2026-10-25.

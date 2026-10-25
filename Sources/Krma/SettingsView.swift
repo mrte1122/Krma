@@ -91,11 +91,7 @@ private struct GeneralSettings: View {
                     }
                 }
                 Toggle("Check for updates automatically (daily)", isOn: $autoUpdate)
-                HStack {
-                    Link("Source on GitHub", destination: Links.repo)
-                    Spacer()
-                    Link(destination: Links.tip) { Label("Buy me a coffee", systemImage: "cup.and.saucer.fill") }
-                }
+                Link("Source on GitHub", destination: Links.repo)
                 HStack {
                     Text("Krma is free and open source. Diagnostics never include your tokens.")
                         .font(.caption).foregroundStyle(.secondary)
